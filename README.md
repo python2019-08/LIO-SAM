@@ -97,6 +97,15 @@ Use the following commands to download and compile the package.
   colcon build
   ```
 
+On Ubuntu 24.04, the distribution's `libgtsam-dev` 4.2.0 package exports
+`CppUnitLite` without shipping `libCppUnitLite.a`. The build uses a private copy
+of its CMake configuration under the build directory to skip validation of this
+unused test archive. The installed GTSAM files are untouched; checks for the
+GTSAM library itself remain enabled. This copy also locates the installed METIS
+runtime library if the development symlink is missing. A custom `GTSAM_DIR`
+takes precedence over this workaround. Eigen is located through `Eigen3`, and the unused
+`gtsam_unstable` header is not required.
+
 ## Using Docker
 
 Build image (based on ROS2 Humble):

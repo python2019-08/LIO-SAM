@@ -5,6 +5,14 @@ if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+# ROS's interface generators invoke ${Python3_EXECUTABLE} as-is. When a conda
+# environment comes first in PATH, that interpreter lacks ROS's Python modules
+# (e.g. `em`) and configuration fails, so prefer the system interpreter unless
+# the caller picked one explicitly.
+if(NOT DEFINED Python3_EXECUTABLE AND EXISTS "/usr/bin/python3")
+  set(Python3_EXECUTABLE "/usr/bin/python3")
+endif()
+
 
 # find dependencies
 find_package(ament_cmake REQUIRED)
@@ -27,8 +35,9 @@ find_package(tf2_ros REQUIRED)
 set(OpenCV_STATIC ON)
 find_package(OpenCV REQUIRED)
 find_package(PCL REQUIRED)
+include(cmake/GtsamUbuntuWorkaround.cmake)
 find_package(GTSAM REQUIRED)
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(OpenMP REQUIRED)
 
 include_directories(
@@ -49,8 +58,8 @@ ament_target_dependencies(${PROJECT_NAME}_imageProjection rclcpp rclpy std_msgs 
 target_link_libraries(${PROJECT_NAME}_imageProjection "${cpp_typesupport_target}") 
 
 add_executable(${PROJECT_NAME}_imuPreintegration src/imuPreintegration.cpp)
-ament_target_dependencies(${PROJECT_NAME}_imuPreintegration rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_conversions pcl_msgs visualization_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL GTSAM Eigen)
-target_link_libraries(${PROJECT_NAME}_imuPreintegration gtsam "${cpp_typesupport_target}")
+ament_target_dependencies(${PROJECT_NAME}_imuPreintegration rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_conversions pcl_msgs visualization_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL GTSAM)
+target_link_libraries(${PROJECT_NAME}_imuPreintegration gtsam Eigen3::Eigen "${cpp_typesupport_target}")
 
 add_executable(${PROJECT_NAME}_mapOptimization src/mapOptmization.cpp)
 ament_target_dependencies(${PROJECT_NAME}_mapOptimization rclcpp rclpy std_msgs sensor_msgs geometry_msgs nav_msgs pcl_conversions pcl_msgs visualization_msgs tf2 tf2_ros tf2_eigen tf2_sensor_msgs tf2_geometry_msgs OpenCV PCL GTSAM)
